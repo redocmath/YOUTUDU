@@ -1,13 +1,13 @@
 import sys
 import os
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
 from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl
+from PyQt5.QtCore import pyqtSlot, QUrl, QThread
 from PyQt5 import uic
 from lib.youtudu_v1_layout import UI_MainWindow
-from Auth_dialog import Auth_Dialog
-from FName_dialog import Ui_FName
+from lib.Auth_dialog import Auth_Dialog
+from lib.FName_dialog import Ui_FName
+from lib.Thread_worker import Thread_worker
 import sqlite3
 import re
 import youtube_dl
@@ -28,6 +28,28 @@ class YOUTUDU(QMainWindow, UI_MainWindow):
         self.youtb = None
         self.youtube_index = None
 
+        # if not thread
+        # QSound.play('resource/intro.wav')
+
+        # thread
+        self.Thread_init_intro()
+
+    def Thread_init_intro(self):
+        self.Thread = Thread_worker()
+        self.Intro_thread = QThread()
+        self.Thread.moveToThread(self.Intro_thread)
+
+        # signal connect
+        self.Thread.start_log.connect(self.Intro_show_Info)
+
+        # thread start signal connect
+        self.Intro_thread.started.connect(self.Thread.play_BGM)
+
+        self.Intro_thread.start()
+
+    def Intro_show_Info(self, msg, file):
+        self.log.append("program started by : %s" % msg)
+        self.log.append("Intro is : %s" % file)
 
     def Auth_init_lock(self):
         self.url.setText("Login to download file")
@@ -131,7 +153,7 @@ class YOUTUDU(QMainWindow, UI_MainWindow):
                 self.url.setFocus(True)
 
     def YoutubeDL_init(self):
-        self.youtb = ['audio only - m4a (worst)', '144p - mp4', '240p - mp4', '360p - mp4', '480p - mp4', '720p - mp4', '640x360 - mp4', '1080p - mp4 (best)']
+        self.youtb = ['audio only - m4a (worst)', '144p - mp4', '240p - mp4', '360p - mp4', '480p - mp4', '720p - mp4', '640p - mp4(with music)', '1080p - mp4 (best)(with music)']
         self.youtube_index = [140, 160, 133, 134, 135, 136, 18, 22]
         self.stream_comboBox.addItems(self.youtb)
 
